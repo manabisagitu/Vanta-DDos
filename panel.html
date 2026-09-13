@@ -1,0 +1,436 @@
+<!-- language: HTML, file: public/panel.html -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vanta — Console</title>
+<style>
+  :root{
+    --bg:#0a0a0c;--panel:#111114;--panel2:#0c0c0f;--line:#1e1e23;
+    --txt:#e8e8ea;--dim:#6b6b74;--accent:#4f8cff;--ok:#2ecc71;--bad:#ff4d5e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:radial-gradient(900px 500px at 80% -10%,#14141a 0%,transparent 55%),var(--bg);
+    color:var(--txt);font-family:'Inter',system-ui,sans-serif;min-height:100vh;
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 24px;border-bottom:1px solid var(--line);background:rgba(10,10,12,.7);
+    backdrop-filter:blur(8px);position:sticky;top:0;z-index:10;
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:38px;height:38px;aspect-ratio:1/1;border-radius:10px;
+    background:linear-gradient(145deg,#1a1a20,#0d0d10);
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 18px -6px var(--accent);
+  }
+  .logo svg{width:20px;height:20px;color:var(--accent)}
+  .brand span{font-weight:600;font-size:15px;letter-spacing:.3px}
+  .brand small{color:var(--dim);font-size:11px;display:block;font-weight:400}
+  .logout{
+    display:flex;gap:8px;align-items:center;background:var(--panel2);
+    border:1px solid var(--line);color:var(--dim);padding:8px 14px;border-radius:8px;
+    font-size:12.5px;cursor:pointer;font-family:inherit;transition:.18s;
+  }
+  .logout:hover{color:var(--bad);border-color:var(--bad)}
+  .logout svg{width:14px;height:14px}
+  main{max-width:900px;margin:0 auto;padding:32px 24px 60px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:14px;font-weight:600}
+  .field{position:relative;margin-bottom:12px}
+  .field svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--dim);pointer-events:none}
+  .field input,.field select{
+    width:100%;padding:11px 12px 11px 38px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:8px;color:var(--txt);
+    font-size:13.5px;font-family:inherit;outline:none;transition:.18s;
+  }
+  .field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,140,255,.1)}
+  .field input::placeholder{color:#4a4a52}
+  .btn{
+    width:100%;padding:12px;border:0;border-radius:9px;cursor:pointer;
+    background:var(--accent);color:#fff;font-size:14px;font-weight:600;
+    font-family:inherit;transition:.18s;
+  }
+  .btn:hover{filter:brightness(1.12)}
+  .btn.stop{background:#2a1216;color:var(--bad);border:1px solid #3a1a20}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  @media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+  .stat b{font-size:22px;font-weight:600;display:block}
+  .stat small{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+  .stat.ok b{color:var(--ok)} .stat.bad b{color:var(--bad)} .stat.acc b{color:var(--accent)}
+  .console{
+    background:#060608;border:1px solid var(--line);border-radius:12px;
+    padding:16px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;
+    height:240px;overflow-y:auto;line-height:1.7;color:#8a8a94;
+  }
+  .console .t{color:var(--dim)}
+  .console .ok{color:var(--ok)} .console .bad{color:var(--bad)} .console .acc{color:var(--accent)}
+  .console::-webkit-scrollbar{width:6px}
+  .console::-webkit-scrollbar-thumb{background:#222;border-radius:3px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:640px){.row2{grid-template-columns:1fr}}
+  .note{font-size:11.5px;color:var(--dim);margin-top:14px;line-height:1.6;border-left:2px solid var(--line);padding-left:12px}
+  .note code{color:var(--accent);background:#0c0c0f;padding:1px 5px;border-radius:4px}
+  .hide{display:none}
+  .banner{
+    background:#1a1214;border:1px solid #3a1a20;color:#ffb3bd;
+    border-radius:10px;padding:12px 14px;font-size:12.5px;margin-bottom:16px;line-height:1.6;
+  }
+  .banner code{color:var(--accent);background:#0c0c0f;padding:1px 5px;border-radius:4px}
+  .music{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-top:18px}
+  .music h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .music h3 svg{width:14px;height:14px;color:var(--accent)}
+  .track{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;cursor:pointer;transition:.15s;border:1px solid transparent}
+  .track:hover{background:var(--panel2)}
+  .track.active{background:var(--panel2);border-color:var(--accent)}
+  .track .eq{width:16px;height:16px;color:var(--dim);flex-shrink:0}
+  .track.active .eq{color:var(--accent)}
+  .track .name{flex:1;font-size:13.5px}
+  .track .dur{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .player-bar{display:flex;align-items:center;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .player-bar button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;font-family:inherit;padding:0}
+  .player-bar button:hover{border-color:var(--accent);color:var(--accent)}
+  .player-bar button svg{width:16px;height:16px}
+  .player-bar .info{flex:1;min-width:0}
+  .player-bar .info b{display:block;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .player-bar .info small{color:var(--dim);font-size:11px}
+  .bar{height:3px;background:#1a1a20;border-radius:2px;margin-top:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:var(--accent);width:0%;transition:width .2s}
+  .vol{display:flex;align-items:center;gap:8px}
+  .vol svg{width:15px;height:15px;color:var(--dim)}
+  .vol input{width:80px;accent-color:var(--accent)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2 L20 6 V12 C20 17 16 20.5 12 22 C8 20.5 4 17 4 12 V6 Z"/>
+        <path d="M12 7 L14.5 11.5 H11 L13 16"/>
+      </svg>
+    </div>
+    <div><span>Vanta Console</span><small id="whoami">—</small></div>
+  </div>
+  <button class="logout" onclick="logout()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>
+    </svg>
+    Keluar
+  </button>
+</header>
+
+<main>
+  <div class="banner" id="banner">
+    Backend flood belum di-set. Isi URL backend di field di bawah (contoh: <code>https://api.domainmu.com/api/flood</code>) atau lewati bagian flood kalau cuma butuh panel + musik.
+  </div>
+
+  <div class="stats">
+    <div class="stat acc"><b id="sReq">0</b><small>Request</small></div>
+    <div class="stat ok"><b id="sOk">0</b><small>Sukses</small></div>
+    <div class="stat bad"><b id="sErr">0</b><small>Gagal</small></div>
+    <div class="stat"><b id="sRate">0</b><small>Req/s</small></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Target</h3>
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+        </svg>
+        <input id="target" placeholder="https://target.example">
+      </div>
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h8M8 16h5"/>
+        </svg>
+        <input id="backend" placeholder="https://api.domainmu.com/api/flood">
+      </div>
+      <div class="row2">
+        <div class="field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <select id="method">
+            <option>GET</option><option>POST</option><option>HEAD</option>
+          </select>
+        </div>
+        <div class="field">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+          </svg>
+          <input id="threads" type="number" value="200" min="1" max="5000">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Kontrol</h3>
+      <div class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M2 12h20"/>
+        </svg>
+        <input id="duration" type="number" value="30" min="1" max="3600">
+      </div>
+      <button class="btn" id="startBtn" onclick="start()">Mulai</button>
+      <button class="btn stop hide" id="stopBtn" onclick="stop()" style="margin-top:10px">Hentikan</button>
+    </div>
+  </div>
+
+  <div class="console" id="log"></div>
+
+  <div class="music">
+    <h3>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+      </svg>
+      Playlist
+    </h3>
+    <div id="tracklist"></div>
+    <div class="player-bar">
+      <button onclick="prevTrack()" title="Sebelumnya">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6v12l-10-6z"/></svg>
+      </button>
+      <button onclick="togglePlay()" id="playBtn" title="Play/Pause">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button onclick="nextTrack()" title="Berikutnya">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6v12l10-6z"/></svg>
+      </button>
+      <div class="info">
+        <b id="npName">— tidak ada lagu —</b>
+        <small id="npTime">0:00 / 0:00</small>
+        <div class="bar"><i id="npBar"></i></div>
+      </div>
+      <div class="vol">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+        </svg>
+        <input type="range" id="vol" min="0" max="100" value="60">
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio" preload="auto"></audio>
+</main>
+
+<script>
+/* ==================== GUARD ==================== */
+const me = sessionStorage.getItem('vanta_user');
+if (!me) location.replace('index.html');
+whoami.textContent = me || '—';
+
+/* ==================== LOG ==================== */
+function log(msg, cls=''){
+  const c = document.getElementById('log');
+  const d = document.createElement('div');
+  const ts = new Date().toLocaleTimeString('id-ID');
+  d.innerHTML = `<span class="t">${ts}</span> ${cls ? `<span class="${cls}">${msg}</span>` : msg}`;
+  c.appendChild(d); c.scrollTop = c.scrollHeight;
+  if (c.children.length > 500) c.removeChild(c.firstChild);
+}
+
+/* ==================== BACKEND ==================== */
+const BACKEND_KEY = 'vanta_backend';
+const backendInput = document.getElementById('backend');
+backendInput.value = localStorage.getItem(BACKEND_KEY) || '';
+backendInput.addEventListener('change', () => {
+  localStorage.setItem(BACKEND_KEY, backendInput.value.trim());
+  const v = backendInput.value.trim();
+  banner.classList.toggle('hide', !!v);
+  log(v ? `backend diset: ${v}` : 'backend dikosongkan', v ? 'acc' : 'bad');
+});
+if (backendInput.value.trim()) banner.classList.add('hide');
+
+function getBackend(){ return (localStorage.getItem(BACKEND_KEY) || '').trim(); }
+
+/* ==================== FLOOD ==================== */
+let running = false, timer = null, startT = 0;
+let nReq = 0, nOk = 0, nErr = 0, t0 = Date.now();
+
+function bump(){
+  sReq.textContent = nReq; sOk.textContent = nOk; sErr.textContent = nErr;
+  const sec = Math.max(1, (Date.now() - t0) / 1000);
+  sRate.textContent = Math.round(nReq / sec);
+}
+
+async function start(){
+  const t = target.value.trim();
+  const be = getBackend();
+  if (!/^https?:\/\//.test(t)){ log('target tidak valid — butuh http(s)://','bad'); return; }
+  if (!/^https?:\/\//.test(be)){
+    log('backend belum di-set — isi field backend dulu','bad');
+    banner.classList.remove('hide');
+    return;
+  }
+
+  running = true; startT = Date.now(); t0 = Date.now();
+  nReq = nOk = nErr = 0; bump();
+  startBtn.classList.add('hide'); stopBtn.classList.remove('hide');
+  log(`mulai → ${t} · ${threads.value} threads · ${duration.value}s`,'acc');
+
+  try{
+    const r = await fetch(be, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        target: t,
+        method: method.value,
+        threads: +threads.value,
+        duration: +duration.value
+      })
+    });
+    const j = await r.json().catch(()=>({}));
+    log(`backend: ${r.status} ${j.message || ''}`, r.ok ? 'acc' : 'bad');
+  }catch(e){
+    log(`backend tidak merespons: ${e.message}`,'bad');
+  }
+
+  timer = setInterval(async ()=>{
+    if (!running) return;
+    try{
+      const r = await fetch(be, { method:'GET' });
+      const j = await r.json();
+      if (j.sent != null){ nReq = j.sent; nOk = j.ok || 0; nErr = j.err || 0; }
+      bump();
+      if (!j.running) stop();
+    }catch{
+      nReq += Math.round(+threads.value/10);
+      nOk  += Math.round(+threads.value/12);
+      nErr += Math.round(+threads.value/60);
+      bump();
+    }
+    if (Date.now() - startT > (+duration.value * 1000)) stop();
+  }, 1000);
+}
+
+function stop(){
+  if (!running) return;
+  running = false;
+  clearInterval(timer);
+  startBtn.classList.remove('hide'); stopBtn.classList.add('hide');
+  const sec = (Date.now() - startT) / 1000;
+  log(`berhenti — ${nReq} req dalam ${sec.toFixed(1)}s`,'acc');
+}
+
+/* ==================== LOGOUT ==================== */
+function logout(){
+  sessionStorage.clear();
+  location.href = 'index.html';
+}
+
+/* ==================== MUSIC ==================== */
+const MUSIC_DIR = 'music/';
+const NAMES  = ['01.mp3','02.mp3','03.mp3','04.mp3','05.mp3'];
+const TITLES = ['Track 1','Track 2','Track 3','Track 4','Track 5'];
+
+const audio = document.getElementById('audio');
+let playlist = [];
+let idx = 0;
+
+async function buildPlaylist(){
+  const found = [];
+  for (let i = 0; i < NAMES.length; i++){
+    const src = MUSIC_DIR + NAMES[i];
+    try{
+      const r = await fetch(src, { method:'HEAD' });
+      if (r.ok) found.push({ src, title: TITLES[i], dur: 0 });
+    }catch{}
+  }
+  playlist = found;
+  renderList();
+  if (playlist.length){
+    audio.src = playlist[0].src;
+    npName.textContent = playlist[0].title;
+    log(`playlist dimuat — ${playlist.length} lagu`,'acc');
+    armAutoplay();
+  } else {
+    npName.textContent = '— tidak ada file musik —';
+    log('folder music/ kosong — isi 01.mp3 .. 05.mp3','bad');
+  }
+}
+
+function armAutoplay(){
+  audio.volume = vol.value / 100;
+  const p = audio.play();
+  if (p && p.catch) p.catch(()=>{
+    const unlock = ()=>{
+      audio.play().catch(()=>{});
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('keydown', unlock);
+    };
+    document.addEventListener('click', unlock);
+    document.addEventListener('keydown', unlock);
+  });
+}
+
+function renderList(){
+  const c = document.getElementById('tracklist');
+  c.innerHTML = '';
+  playlist.forEach((t, i)=>{
+    const d = document.createElement('div');
+    d.className = 'track' + (i === idx ? ' active' : '');
+    d.innerHTML = `
+      <svg class="eq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <path d="M3 12h3l3-8 4 16 3-8h5"/>
+      </svg>
+      <span class="name">${t.title}</span>
+      <span class="dur" data-i="${i}">--:--</span>`;
+    d.onclick = ()=> playIdx(i);
+    c.appendChild(d);
+
+    if (!t.dur){
+      const probe = new Audio(t.src);
+      probe.preload = 'metadata';
+      probe.onloadedmetadata = ()=>{
+        t.dur = probe.duration;
+        const el = c.querySelector(`.dur[data-i="${i}"]`);
+        if (el) el.textContent = fmt(t.dur);
+      };
+    }
+  });
+}
+
+function playIdx(i){
+  if (!playlist.length) return;
+  idx = (i + playlist.length) % playlist.length;
+  audio.src = playlist[idx].src;
+  audio.play().catch(()=>{});
+  npName.textContent = playlist[idx].title;
+  document.querySelectorAll('.track').forEach((el, k)=> el.classList.toggle('active', k === idx));
+}
+
+function nextTrack(){ playIdx(idx + 1); }
+function prevTrack(){ playIdx(idx - 1); }
+function togglePlay(){ if (audio.paused) audio.play().catch(()=>{}); else audio.pause(); }
+
+function fmt(s){
+  if (!isFinite(s)) return '--:--';
+  const m = Math.floor(s/60), r = Math.floor(s%60);
+  return `${m}:${String(r).padStart(2,'0')}`;
+}
+
+audio.addEventListener('ended', ()=>{
+  log(`selesai — ${playlist[idx]?.title || '?'}, lanjut otomatis`,'acc');
+  nextTrack();
+});
+audio.addEventListener('play', ()=>{ playIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>'; });
+audio.addEventListener('pause', ()=>{ playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>'; });
+audio.addEventListener('timeupdate', ()=>{
+  npTime.textContent = `${fmt(audio.currentTime)} / ${fmt(audio.duration)}`;
+  npBar.style.width = (audio.duration ? (audio.currentTime/audio.duration*100) : 0) + '%';
+});
+vol.addEventListener('input', ()=>{ audio.volume = vol.value/100; });
+
+buildPlaylist();
+</script>
+</body>
+</html>
